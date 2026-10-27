@@ -239,8 +239,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
-                SwitchListTile(
-                  value: widget.store.autoExport,
+                if (widget.store.canDownload)
+                  SwitchListTile(
+                    value: widget.store.autoExport,
                   title: const Text('下载完成后自动导出 Emby'),
                   subtitle: const Text(
                     '在下载目录的 exports 中生成视频和海报 URL 元数据，可将该目录加入 Emby 媒体库。',
@@ -260,8 +261,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           }
                         },
                 ),
-                SwitchListTile(
-                  value: widget.store.exportPosters,
+                if (widget.store.canDownload)
+                  SwitchListTile(
+                    value: widget.store.exportPosters,
                   title: const Text('同时导出海报文件'),
                   subtitle: const Text('默认只写海报 URL。源站海报需要解密或外部读取失败时可开启。'),
                   onChanged: _busy

@@ -1,0 +1,50 @@
+// ============================================================
+//  国内镜像加速配置(可选)
+//  用法 A(推荐,不改用户目录):
+//    gradle -I gradle-mirrors.init.gradle <任务>
+//  用法 B(全局生效):
+//    复制到 %USERPROFILE%\.gradle\init.d\mirrors.gradle
+//
+//  作用:把 Gradle / AGP / Android 依赖的下载地址从
+//  dl.google.com、repo.maven.apache.org 换成阿里云镜像。
+//  上次本地构建卡 15 分钟没完成,根因就是这里没配。
+// ============================================================
+def mirrors = [
+    'https://maven.aliyun.com/repository/google',
+    'https://maven.aliyun.com/repository/public',
+    'https://maven.aliyun.com/repository/gradle-plugin',
+    'https://maven.aliyun.com/repository/central',
+]
+
+settingsEvaluated { settings ->
+    settings.pluginManagement {
+        repositories {
+            mirrors.each { m -> maven { url m; allowInsecureProtocol = false } }
+            gradlePluginPortal()
+            google()
+            mavenCentral()
+        }
+    }
+    try {
+        settings.dependencyResolutionManagement {
+            repositories {
+                mirrors.each { m -> maven { url m } }
+                google()
+                mavenCentral()
+            }
+        }
+    } catch (ignored) {
+        // 老版本 Gradle 没有 dependencyResolutionManagement,忽略
+    }
+}
+
+allprojects { project ->
+    project.buildscript {
+        repositories {
+            mirrors.each { m -> maven { url m } }
+        }
+    }
+    project.repositories {
+        mirrors.each { m -> maven { url m } }
+    }
+}

@@ -29,7 +29,7 @@ if (releaseKey.exists()) {
 val hasReleaseKey = releaseProperties.getProperty("storeFile") != null
 
 android {
-    namespace = "com.duanju.duanju_app"
+    namespace = "android.xiaoxu.yy"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "28.2.13676358"
 
@@ -39,12 +39,12 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.duanju.duanju_app"
+        applicationId = "android.xiaoxu.yy"
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders["appLabel"] = if (allSources) "真果鉴" else "红果鉴"
+        manifestPlaceholders["appLabel"] = "丽哥短剧"
         manifestPlaceholders["appBanner"] = if (allSources) "@drawable/tv_banner_all_sources" else "@drawable/tv_banner"
     }
 

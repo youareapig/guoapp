@@ -315,7 +315,8 @@ class _ProfileEditorState extends State<ProfileEditor> {
       (widget.profile?.sources ??
               widget.store.sources.map((s) => s.id).toList())
           .toSet();
-  late bool _download = widget.profile?.download ?? true;
+  // 已移除下载能力,固定为仅在线观看。
+  final bool _download = false;
   bool _clearPin = false, _busy = false;
   String? _error;
   @override
@@ -435,13 +436,6 @@ class _ProfileEditorState extends State<ProfileEditor> {
                     });
                   },
                 ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('允许下载和本地媒体'),
-                subtitle: Text(_download ? '可下载、合并和导出' : '仅在线观看，隐藏下载入口'),
-                value: _download,
-                onChanged: (v) => setState(() => _download = v),
-              ),
             ] else
               const Text('管理员可以访问全部站源和功能。创建其他用户前需要先设置管理员密码。'),
             if (_error != null)

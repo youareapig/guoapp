@@ -11,10 +11,11 @@ import 'catalog_browser.dart';
 import 'catalog_sort.dart';
 import 'catalog_sort_sheet.dart';
 import 'recommendations_screen.dart';
+import 'swipe_feed_screen.dart';
+import 'batch_download_screen.dart';
 import 'rankings_screen.dart';
 import 'detail_screen.dart';
 import 'playback_launch_screen.dart';
-import 'downloads_screen.dart';
 import 'local_store.dart';
 import 'lan_screen.dart';
 import 'models.dart';
@@ -25,7 +26,6 @@ import 'settings_screen.dart';
 import 'profiles_screen.dart';
 import 'search_input.dart';
 import 'sources_screen.dart';
-import 'batch_download_screen.dart';
 import 'batch_downloads.dart';
 import 'drama_actions.dart';
 import 'follow_updater.dart';
@@ -844,12 +844,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.history_rounded),
             label: Text('最近观看'),
           ),
-          if (widget.store.canDownload)
-            const NavigationRailDestination(
-              icon: Icon(Icons.download_outlined),
-              selectedIcon: Icon(Icons.download_rounded),
-              label: Text('下载'),
-            ),
+          const NavigationRailDestination(
+            icon: Icon(Icons.swipe_vertical_outlined),
+            selectedIcon: Icon(Icons.swipe_vertical_rounded),
+            label: Text('刷剧'),
+          ),
         ];
         final scaffold = Scaffold(
           appBar: AppBar(
@@ -1087,10 +1086,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               )
                             : _catalog(selectionInBody: desktop || television)
                       : _tab == 3
-                      ? DownloadsScreen(
+                      ? SwipeFeedScreen(
                           repository: widget.repository,
                           store: widget.store,
-                          embedded: true,
                         )
                       : SavedLibrary(
                           key: ValueKey('saved-tab-$_tab'),
@@ -1132,12 +1130,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icon(Icons.history_rounded),
                       label: '最近观看',
                     ),
-                    if (widget.store.canDownload)
-                      NavigationDestination(
-                        icon: Icon(Icons.download_outlined),
-                        selectedIcon: Icon(Icons.download_rounded),
-                        label: '下载',
-                      ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.swipe_vertical_outlined),
+                      selectedIcon: Icon(Icons.swipe_vertical_rounded),
+                      label: '刷剧',
+                    ),
                   ],
                 ),
         );

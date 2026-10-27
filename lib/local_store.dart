@@ -128,7 +128,8 @@ class LocalStore extends ChangeNotifier {
     return _bool('forceLogin') ?? admin.protected;
   }
 
-  bool get canDownload => !locked && (profile.admin || profile.download);
+  /// 本应用已移除下载能力:下载入口、下载任务与本地媒体入口一律关闭。
+  bool get canDownload => false;
   bool allowsSource(String source) =>
       !locked &&
       SourceSite.isAvailable(source) &&

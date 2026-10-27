@@ -8,7 +8,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 import 'video_enhancement_assets.dart';
-import 'video_enhancement_mpv.dart';
+import 'native/mpv_enhancement.dart';
 import 'video_enhancement_policy.dart';
 import 'video_enhancement_preferences.dart';
 import 'video_output_size.dart';

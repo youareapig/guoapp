@@ -1,10 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
-import 'dart:io';
-import 'dart:isolate';
 
-import 'package:ffi/ffi.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
@@ -20,44 +16,7 @@ import 'catalog_updates.dart';
 import 'download_collections.dart';
 import 'resource_settings.dart';
 import 'diary_service.dart';
-
-typedef _NativeRequest = Pointer<Utf8> Function(Pointer<Utf8>);
-typedef _DartRequest = Pointer<Utf8> Function(Pointer<Utf8>);
-typedef _NativeFree = Void Function(Pointer<Utf8>);
-typedef _DartFree = void Function(Pointer<Utf8>);
-
-String _nativeRequest(String body) {
-  final DynamicLibrary library;
-  if (Platform.isAndroid) {
-    library = DynamicLibrary.open('libduanju_core.so');
-  } else if (Platform.isWindows) {
-    library = DynamicLibrary.open(
-      path.join(path.dirname(Platform.resolvedExecutable), 'duanju_core.dll'),
-    );
-  } else if (Platform.isIOS) {
-    library = DynamicLibrary.process();
-  } else {
-    throw UnsupportedError('当前首版支持 Android 手机和 Windows 电脑');
-  }
-  final request = library.lookupFunction<_NativeRequest, _DartRequest>(
-    'DuanjuRequest',
-  );
-  final free = library.lookupFunction<_NativeFree, _DartFree>('DuanjuFree');
-  final input = body.toNativeUtf8();
-  Pointer<Utf8> output = nullptr;
-  try {
-    output = request(input);
-    if (output == nullptr) {
-      throw StateError('本地核心没有返回结果');
-    }
-    return output.toDartString();
-  } finally {
-    malloc.free(input);
-    if (output != nullptr) {
-      free(output);
-    }
-  }
-}
+import 'native/native_bridge.dart';
 
 class AppFailure implements Exception {
   AppFailure(this.message, {this.code = ''});
@@ -585,9 +544,7 @@ class NativeRepository extends AppRepository {
       }
       final body = jsonEncode(input);
       final response =
-          await Isolate.run(
-            () => jsonDecode(_nativeRequest(body)) as Map<String, dynamic>,
-          ).timeout(
+          await runNativeRequest(body).timeout(
             Duration(
               seconds: action == 'moveDownloads'
                   ? 620
@@ -717,7 +674,7 @@ class NativeRepository extends AppRepository {
     final known = force ? null : _coverPaths[key];
     if (known != null) {
       _authorize(drama.source);
-      if (await File(known).exists()) return known;
+      if (await nativeFileExists(known)) return known;
       _coverPaths.remove(key);
     }
     final epoch = access?.profileEpoch;

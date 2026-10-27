@@ -6,7 +6,7 @@ import 'core_bridge.dart';
 import 'drama_actions.dart';
 import 'local_store.dart';
 import 'models.dart';
-import 'playback_launch_screen.dart';
+import 'native/player_launcher.dart';
 import 'widgets.dart';
 
 /// 上下滑动刷剧:竖向全屏信息流。

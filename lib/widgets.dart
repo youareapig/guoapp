@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'core_bridge.dart';
+import 'native/cover_image.dart';
 import 'app_layout.dart';
 import 'models.dart';
 import 'remote_widgets.dart';
@@ -326,7 +326,7 @@ class _CachedCoverImageState extends State<CachedCoverImage> {
       await ResizeImage.resizeIfNeeded(
         440,
         null,
-        FileImage(File(path)),
+        coverImageProvider(path),
       ).evict();
     }
     if (mounted) {
@@ -370,12 +370,9 @@ class _CachedCoverImageState extends State<CachedCoverImage> {
             if (snapshot.hasError || !snapshot.hasData) {
               return _failed(null);
             }
-            return Image.file(
-              File(snapshot.data!),
-              fit: BoxFit.cover,
-              cacheWidth: 440,
-              excludeFromSemantics: true,
-              errorBuilder: (_, error, stack) => _failed(snapshot.data),
+            return coverImage(
+              snapshot.data!,
+              errorBuilder: (error, stack) => _failed(snapshot.data),
             );
           },
         );

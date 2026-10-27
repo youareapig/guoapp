@@ -1038,8 +1038,8 @@ class _PlayerScreenState extends State<PlayerScreen>
         if (plan.url.isEmpty) {
           throw AppFailure('站源未返回播放地址，请重试');
         }
-        final platform = _player.platform;
-        if (platform is NativePlayer) {
+        final dynamic platform = _player.platform;
+        if (!kIsWeb && platform is NativePlayer) {
           if (Platform.isAndroid) {
             if (_television) {
               final optimized =

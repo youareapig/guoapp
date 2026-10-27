@@ -15,8 +15,9 @@ import 'swipe_feed_screen.dart';
 import 'batch_download_screen.dart';
 import 'rankings_screen.dart';
 import 'detail_screen.dart';
-import 'playback_launch_screen.dart';
+import 'native/player_launcher.dart';
 import 'local_store.dart';
+import 'my_tab.dart';
 import 'lan_screen.dart';
 import 'models.dart';
 import 'remote_widgets.dart';
@@ -30,7 +31,6 @@ import 'batch_downloads.dart';
 import 'drama_actions.dart';
 import 'follow_updater.dart';
 import 'library_updater.dart';
-import 'saved_library.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.repository, required this.store});
@@ -831,27 +831,25 @@ class _HomeScreenState extends State<HomeScreen> {
         final desktop = constraints.maxWidth >= 840;
         final destinations = [
           const NavigationRailDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore),
-            label: Text('发现'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.bookmark_border_rounded),
-            selectedIcon: Icon(Icons.bookmark_rounded),
-            label: Text('追剧'),
-          ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.history_rounded),
-            label: Text('最近观看'),
-          ),
-          const NavigationRailDestination(
             icon: Icon(Icons.swipe_vertical_outlined),
             selectedIcon: Icon(Icons.swipe_vertical_rounded),
-            label: Text('刷剧'),
+            label: Text('推荐'),
+          ),
+          const NavigationRailDestination(
+            icon: Icon(Icons.explore_outlined),
+            selectedIcon: Icon(Icons.explore),
+            label: Text('剧场'),
+          ),
+          const NavigationRailDestination(
+            icon: Icon(Icons.person_outline_rounded),
+            selectedIcon: Icon(Icons.person_rounded),
+            label: Text('我的'),
           ),
         ];
         final scaffold = Scaffold(
-          appBar: AppBar(
+          appBar: _tab == 0
+              ? null
+              : AppBar(
             toolbarHeight: television ? 64 : null,
             titleSpacing: 12,
             title: _selectionMode
@@ -860,7 +858,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   )
-                : _tab == 0 && widget.store.sources.isNotEmpty
+                : _tab == 1 && widget.store.sources.isNotEmpty
                 ? PopupMenuButton<SourceGroup>(
                     key: const ValueKey('source-switch'),
                     tooltip: '切换站源',
@@ -899,6 +897,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   )
+                : _tab == 2
+                ? const Text('我的')
                 : const Text(appName),
             actions: [
               if (_selectionMode) ...[
@@ -915,14 +915,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Text('取消'),
                 ),
               ] else ...[
-                if (_tab == 1)
+                if (_tab == 2)
                   IconButton(
                     key: const ValueKey('follow-lan-sync'),
                     tooltip: '追剧同步',
                     onPressed: () => openLanSync(context),
                     icon: const Icon(Icons.sync_rounded),
                   ),
-                if (_tab == 0) ...[
+                if (_tab == 1) ...[
                   if (!_showRecommendations)
                     IconButton(
                       tooltip: '排序与筛选 · ${widget.store.catalogView.sort.label}',
@@ -968,7 +968,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         : _toggleSearch,
                   ),
                 ],
-                if (_tab == 0 &&
+                if (_tab == 1 &&
                     !_showRecommendations &&
                     constraints.maxWidth >= 400)
                   RefreshAction(
@@ -1028,7 +1028,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                   itemBuilder: (_) => [
-                    if (_tab == 0 &&
+                    if (_tab == 1 &&
                         !_showRecommendations &&
                         constraints.maxWidth < 400)
                       PopupMenuItem(
@@ -1079,30 +1079,45 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
                 Expanded(
                   child: _tab == 0
+                      ? SwipeFeedScreen(
+                          repository: widget.repository,
+                          store: widget.store,
+                        )
+                      : _tab == 1
                       ? widget.store.sources.isEmpty
                             ? const StatusPanel(
                                 title: '暂无可用站源',
                                 message: '请在站源管理中开启站源，或联系管理员开放权限。',
                               )
                             : _catalog(selectionInBody: desktop || television)
-                      : _tab == 3
-                      ? SwipeFeedScreen(
+                      : MyTab(
+                          key: const ValueKey('my-tab'),
                           repository: widget.repository,
                           store: widget.store,
-                        )
-                      : SavedLibrary(
-                          key: ValueKey('saved-tab-$_tab'),
-                          repository: widget.repository,
-                          store: widget.store,
-                          history: _tab == 2,
-                          onOpen: _openDrama,
-                          onContinue: (drama) =>
-                              _openDrama(drama, resume: true),
-                          onDownload:
-                              widget.repository.supportsDownloads &&
-                                  widget.store.canDownload
-                              ? (drama) => _openDrama(drama, download: true)
-                              : null,
+                          version: AppLayout.versionOf(context),
+                          onOpenDrama: _openDrama,
+                          onContinue: (drama) => _openDrama(drama, resume: true),
+                          onSources: _manageSources,
+                          onSettings: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => SettingsScreen(
+                                repository: widget.repository,
+                                store: widget.store,
+                              ),
+                            ),
+                          ),
+                          onUsers: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => ProfilesScreen(store: widget.store),
+                            ),
+                          ),
+                          onAbout: () => showAboutDialog(
+                            context: context,
+                            applicationName: appName,
+                            applicationVersion: AppLayout.versionOf(context),
+                          ),
                         ),
                 ),
               ],
@@ -1116,24 +1131,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   selectedIndex: _tab,
                   onDestinationSelected: _changeTab,
                   destinations: [
-                    NavigationDestination(
-                      icon: Icon(Icons.explore_outlined),
-                      selectedIcon: Icon(Icons.explore),
-                      label: '发现',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.bookmark_border_rounded),
-                      selectedIcon: Icon(Icons.bookmark_rounded),
-                      label: '追剧',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.history_rounded),
-                      label: '最近观看',
-                    ),
                     const NavigationDestination(
                       icon: Icon(Icons.swipe_vertical_outlined),
                       selectedIcon: Icon(Icons.swipe_vertical_rounded),
-                      label: '刷剧',
+                      label: '推荐',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.explore_outlined),
+                      selectedIcon: Icon(Icons.explore),
+                      label: '剧场',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.person_outline_rounded),
+                      selectedIcon: Icon(Icons.person_rounded),
+                      label: '我的',
                     ),
                   ],
                 ),
@@ -1142,7 +1153,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return PopScope(
           canPop:
               !_selectionMode &&
-              (!television || _tab == 0 && _search.text.isEmpty),
+              (!television || _tab == 1 && _search.text.isEmpty),
           onPopInvokedWithResult: (didPop, result) {
             if (!didPop) _televisionBack();
           },

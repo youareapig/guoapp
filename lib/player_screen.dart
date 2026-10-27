@@ -1044,56 +1044,56 @@ class _PlayerScreenState extends State<PlayerScreen>
             if (_television) {
               final optimized =
                   _televisionDecoder == TelevisionDecoder.optimized;
-              await platform.setProperty(
+              await (platform as dynamic).setProperty(
                 'hwdec',
                 _televisionDecoder == TelevisionDecoder.software
                     ? 'no'
                     : 'mediacodec-copy',
               );
-              await platform.setProperty('hwdec-codecs', 'all');
-              await platform.setProperty(
+              await (platform as dynamic).setProperty('hwdec-codecs', 'all');
+              await (platform as dynamic).setProperty(
                 'opengl-pbo',
                 optimized ? 'yes' : 'no',
               );
-              await platform.setProperty(
+              await (platform as dynamic).setProperty(
                 'video-latency-hacks',
                 optimized ? 'yes' : 'no',
               );
-              await platform.setProperty('scale', 'bilinear');
-              await platform.setProperty('cscale', 'bilinear');
-              await platform.setProperty('dscale', 'bilinear');
-              await platform.setProperty('correct-downscaling', 'no');
-              await platform.setProperty(
+              await (platform as dynamic).setProperty('scale', 'bilinear');
+              await (platform as dynamic).setProperty('cscale', 'bilinear');
+              await (platform as dynamic).setProperty('dscale', 'bilinear');
+              await (platform as dynamic).setProperty('correct-downscaling', 'no');
+              await (platform as dynamic).setProperty(
                 'vd-lavc-skiploopfilter',
                 optimized ? 'all' : 'default',
               );
-              await platform.setProperty(
+              await (platform as dynamic).setProperty(
                 'vd-lavc-skipidct',
                 optimized ? 'all' : 'default',
               );
-              await platform.setProperty('vd-lavc-threads', '2');
-              await platform.setProperty(
+              await (platform as dynamic).setProperty('vd-lavc-threads', '2');
+              await (platform as dynamic).setProperty(
                 'demuxer-max-bytes',
                 '${4 * 1024 * 1024}',
               );
-              await platform.setProperty(
+              await (platform as dynamic).setProperty(
                 'demuxer-max-back-bytes',
                 '${1 * 1024 * 1024}',
               );
-              await platform.setProperty('demuxer-readahead-secs', '5');
+              await (platform as dynamic).setProperty('demuxer-readahead-secs', '5');
             } else {
-              await platform.setProperty('hwdec', 'auto-safe');
-              await platform.setProperty('hwdec-codecs', 'all');
-              await platform.setProperty('vd-lavc-skiploopfilter', 'nonkey');
-              await platform.setProperty('vd-lavc-threads', '4');
+              await (platform as dynamic).setProperty('hwdec', 'auto-safe');
+              await (platform as dynamic).setProperty('hwdec-codecs', 'all');
+              await (platform as dynamic).setProperty('vd-lavc-skiploopfilter', 'nonkey');
+              await (platform as dynamic).setProperty('vd-lavc-threads', '4');
             }
-            await platform.setProperty('vd-lavc-fast', 'yes');
-            await platform.setProperty('video-sync', 'audio');
-            await platform.setProperty('framedrop', 'vo');
+            await (platform as dynamic).setProperty('vd-lavc-fast', 'yes');
+            await (platform as dynamic).setProperty('video-sync', 'audio');
+            await (platform as dynamic).setProperty('framedrop', 'vo');
           } else if (Platform.isWindows) {
-            await platform.setProperty('hwdec', 'd3d11va-copy');
+            await (platform as dynamic).setProperty('hwdec', 'd3d11va-copy');
           }
-          await platform.setProperty(
+          await (platform as dynamic).setProperty(
             'demuxer-lavf-o',
             [
               'seg_max_retry=3',
@@ -1106,7 +1106,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 'decryption_key=${plan.decryptionKey}',
             ].join(','),
           );
-          await platform.setProperty('network-timeout', '20');
+          await (platform as dynamic).setProperty('network-timeout', '20');
         }
         _plan = plan;
         installed = true;
@@ -1179,16 +1179,17 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Future<void> _logVideoOutput(VideoParams parameters) async {
-    final platform = _player.platform;
+    final dynamic platform = _player.platform;
     if (_closed ||
+        kIsWeb ||
         parameters.pixelformat == null ||
         platform is! NativePlayer) {
       return;
     }
     final generation = _generation;
     try {
-      final hwdec = await platform.getProperty('hwdec-current');
-      final vo = await platform.getProperty('current-vo');
+      final hwdec = await (platform as dynamic).getProperty('hwdec-current');
+      final vo = await (platform as dynamic).getProperty('current-vo');
       if (_closed) return;
       DiaryService.add(
         '[Video] generation=$generation television=$_television decoder=${_televisionDecoderApplies ? _televisionDecoder.name : 'n/a'} hwdec=$hwdec vo=$vo format=${parameters.pixelformat} hw_format=${parameters.hwPixelformat} size=${parameters.w}x${parameters.h}',
